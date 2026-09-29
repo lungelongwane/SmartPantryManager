@@ -1,0 +1,18 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent" android:layout_height="match_parent" android:orientation="vertical"
+    android:padding="16dp" android:background="@color/cream">
+    <com.google.android.material.appbar.MaterialToolbar
+        android:id="@+id/toolbar" android:layout_width="match_parent" android:layout_height="?attr/actionBarSize"
+        android:title="Smart Pantry Manager" android:background="@color/green_primary" android:titleTextColor="@android:color/white"/>
+
+    <TextView android:layout_width="wrap_content" android:layout_height="wrap_content"
+        android:text="Suggested Recipes" android:textSize="28sp" android:textStyle="bold" android:textColor="@color/green_dark"/>
+    <TextView android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="6dp" android:text="Only recipes you can make completely from your current pantry are shown."
+        android:textColor="@color/text_muted"/>
+    <TextView android:id="@+id/txtNoRecipes" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:padding="24dp" android:gravity="center" android:text="No recipes match your pantry yet - add more ingredients."
+        android:textColor="@color/text_muted" android:visibility="gone"/>
+    <androidx.recyclerview.widget.RecyclerView android:id="@+id/recyclerRecipes"
+        android:layout_width="match_parent" android:layout_height="0dp" android:layout_weight="1" android:layout_marginTop="12dp"/>
+</LinearLayout>
