@@ -21,19 +21,39 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
 
     private DatabaseHelper db;
     private android.widget.TextView empty;
+    private android.view.View emptyRecipeState;
 
     @Override
     protected void onCreate(Bundle b) {
+
         super.onCreate(b);
 
-        setContentView(R.layout.activity_suggested_recipes);
+        setContentView(
+                R.layout.activity_suggested_recipes
+        );
 
-        MaterialToolbar t = findViewById(R.id.toolbar);
-        t.setTitle("Suggested Recipes");
-        setSupportActionBar(t);
+        MaterialToolbar toolbar =
+                findViewById(R.id.toolbar);
+
+        toolbar.setTitle("Suggested Recipes");
+
+        toolbar.setNavigationIcon(
+                R.drawable.ic_arrow_back
+        );
+
+        toolbar.setNavigationOnClickListener(
+                v -> finish()
+        );
+
+        setSupportActionBar(toolbar);
 
         db = new DatabaseHelper(this);
-        empty = findViewById(R.id.txtNoRecipes);
+
+        empty =
+                findViewById(R.id.txtNoRecipes);
+
+        emptyRecipeState =
+                findViewById(R.id.emptyRecipeState);
 
         RecyclerView recycler =
                 findViewById(R.id.recyclerRecipes);
@@ -41,11 +61,27 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
         recycler.setLayoutManager(
                 new LinearLayoutManager(this)
         );
+
+        findViewById(R.id.btnAddIngredients)
+                .setOnClickListener(
+                        v -> {
+
+                            Intent intent =
+                                    new Intent(
+                                            this,
+                                            AddEditIngredientActivity.class
+                                    );
+
+                            startActivity(intent);
+                        }
+                );
     }
 
     @Override
     protected void onResume() {
+
         super.onResume();
+
         load();
     }
 
@@ -64,8 +100,11 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
                                 pantry
                         );
 
-        empty.setVisibility(
-                matches.isEmpty()
+        boolean noMatches =
+                matches.isEmpty();
+
+        emptyRecipeState.setVisibility(
+                noMatches
                         ? android.view.View.VISIBLE
                         : android.view.View.GONE
         );
@@ -73,42 +112,59 @@ public class SuggestedRecipesActivity extends AppCompatActivity {
         RecyclerView recycler =
                 findViewById(R.id.recyclerRecipes);
 
+        recycler.setVisibility(
+                noMatches
+                        ? android.view.View.GONE
+                        : android.view.View.VISIBLE
+        );
+
+        empty.setVisibility(
+                noMatches
+                        ? android.view.View.VISIBLE
+                        : android.view.View.GONE
+        );
+
         recycler.setAdapter(
                 new RecipeAdapter(
                         matches,
-                        r -> {
+                        recipe -> {
 
-                            Intent i = new Intent(
-                                    this,
-                                    RecipeDetailActivity.class
-                            );
+                            Intent intent =
+                                    new Intent(
+                                            this,
+                                            RecipeDetailActivity.class
+                                    );
 
-                            i.putExtra(
+                            intent.putExtra(
                                     "recipeId",
-                                    r.getId()
+                                    recipe.getId()
                             );
 
-                            startActivity(i);
+                            startActivity(intent);
                         }
                 )
         );
     }
 
     @Override
-    public boolean onCreateOptionsMenu(Menu m) {
+    public boolean onCreateOptionsMenu(Menu menu) {
 
         getMenuInflater().inflate(
                 R.menu.main_menu,
-                m
+                menu
         );
 
         return true;
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem i) {
+    public boolean onOptionsItemSelected(
+            MenuItem item) {
 
-        return Navigation.handle(this, i)
-                || super.onOptionsItemSelected(i);
+        return Navigation.handle(
+                this,
+                item
+        ) || super.onOptionsItemSelected(item);
     }
 }
+
