@@ -11,6 +11,11 @@ import com.google.android.material.textfield.TextInputEditText;
 import com.lungelo.smartpantrymanager.database.DatabaseHelper;
 import com.lungelo.smartpantrymanager.models.Ingredient;
 
+import java.text.ParseException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+
 public class AddEditIngredientActivity extends AppCompatActivity {
 
     private DatabaseHelper db;
@@ -27,43 +32,59 @@ public class AddEditIngredientActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_add_edit_ingredient);
 
-        // Toolbar
         MaterialToolbar t = findViewById(R.id.toolbar);
+
         t.setTitle("Ingredient");
+
         t.setNavigationIcon(R.drawable.ic_arrow_back);
-        t.setNavigationOnClickListener(v -> finish());
+
+        t.setNavigationOnClickListener(
+                v -> finish()
+        );
+
         setSupportActionBar(t);
 
-        // Database
         db = new DatabaseHelper(this);
 
-        // Input fields
         name = findViewById(R.id.edtName);
         quantity = findViewById(R.id.edtQuantity);
         unit = findViewById(R.id.edtUnit);
         expiry = findViewById(R.id.edtExpiry);
 
-        // Check whether we are editing an existing ingredient
-        editId = getIntent().getIntExtra("id", -1);
+        editId =
+                getIntent().getIntExtra(
+                        "id",
+                        -1
+                );
 
         if (editId != -1) {
             loadIngredient();
         }
 
-        // Save button
-        findViewById(R.id.btnSave).setOnClickListener(v -> save());
+        findViewById(R.id.btnSave)
+                .setOnClickListener(v -> save());
     }
 
     private void loadIngredient() {
 
-        for (Ingredient i : db.getAllIngredients()) {
+        for (Ingredient i :
+                db.getAllIngredients()) {
 
             if (i.getId() == editId) {
 
                 name.setText(i.getName());
-                quantity.setText(String.valueOf(i.getQuantity()));
+
+                quantity.setText(
+                        String.valueOf(
+                                i.getQuantity()
+                        )
+                );
+
                 unit.setText(i.getUnit());
-                expiry.setText(i.getExpiryDate());
+
+                expiry.setText(
+                        i.getExpiryDate()
+                );
 
                 break;
             }
@@ -84,28 +105,39 @@ public class AddEditIngredientActivity extends AppCompatActivity {
         String u = value(unit);
         String e = value(expiry);
 
-        // Validate ingredient name
         if (TextUtils.isEmpty(n)) {
-            name.setError("Ingredient name is required");
+
+            name.setError(
+                    "Ingredient name is required"
+            );
+
             name.requestFocus();
+
             return;
         }
 
-        // Validate quantity
         if (TextUtils.isEmpty(q)) {
-            quantity.setError("Quantity is required");
+
+            quantity.setError(
+                    "Quantity is required"
+            );
+
             quantity.requestFocus();
+
             return;
         }
 
-        // Validate unit
         if (TextUtils.isEmpty(u)) {
-            unit.setError("Unit is required");
+
+            unit.setError(
+                    "Unit is required"
+            );
+
             unit.requestFocus();
+
             return;
         }
 
-        // Convert quantity to a number
         double qty;
 
         try {
@@ -118,21 +150,37 @@ public class AddEditIngredientActivity extends AppCompatActivity {
 
         } catch (Exception ex) {
 
-            quantity.setError("Enter a quantity greater than 0");
+            quantity.setError(
+                    "Enter a quantity greater than 0"
+            );
+
             quantity.requestFocus();
+
             return;
         }
 
-        // Create ingredient object
-        Ingredient i = new Ingredient(
-                editId,
-                n,
-                qty,
-                u,
-                e
-        );
+        // Validate expiry date when provided
+        if (!TextUtils.isEmpty(e)
+                && !isValidDate(e)) {
 
-        // Add or update
+            expiry.setError(
+                    "Use date format YYYY-MM-DD"
+            );
+
+            expiry.requestFocus();
+
+            return;
+        }
+
+        Ingredient i =
+                new Ingredient(
+                        editId,
+                        n,
+                        qty,
+                        u,
+                        e
+                );
+
         if (editId == -1) {
 
             db.addIngredient(i);
@@ -154,11 +202,37 @@ public class AddEditIngredientActivity extends AppCompatActivity {
             ).show();
         }
 
-        // Return to My Pantry
         finish();
     }
 
-    private String value(TextInputEditText e) {
+    private boolean isValidDate(String date) {
+
+        SimpleDateFormat format =
+                new SimpleDateFormat(
+                        "yyyy-MM-dd",
+                        Locale.getDefault()
+                );
+
+        format.setLenient(false);
+
+        try {
+
+            Date parsed =
+                    format.parse(date);
+
+            return parsed != null
+                    && date.equals(
+                    format.format(parsed)
+            );
+
+        } catch (ParseException e) {
+
+            return false;
+        }
+    }
+
+    private String value(
+            TextInputEditText e) {
 
         if (e.getText() == null) {
             return "";
@@ -169,3 +243,4 @@ public class AddEditIngredientActivity extends AppCompatActivity {
                 .trim();
     }
 }
+
