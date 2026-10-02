@@ -84,22 +84,11 @@ public class DatabaseHelper extends SQLiteOpenHelper {
             int oldVersion,
             int newVersion) {
 
-        db.execSQL(
-                "DROP TABLE IF EXISTS "
-                        + TABLE_RECIPE_INGREDIENTS
-        );
-
-        db.execSQL(
-                "DROP TABLE IF EXISTS "
-                        + TABLE_INGREDIENTS
-        );
-
-        db.execSQL(
-                "DROP TABLE IF EXISTS "
-                        + TABLE_RECIPES
-        );
-
-        onCreate(db);
+        // Preserve existing pantry data during future upgrades.
+        // Add explicit migrations here when the schema changes.
+        if (oldVersion < 1) {
+            onCreate(db);
+        }
     }
 
     public long addIngredient(Ingredient i) {
