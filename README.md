@@ -1,7 +1,12 @@
 # Smart Pantry Manager
 
-Java Android application developed for the Mobile App Development 700
-assignment.
+> A Java-based Android application for managing pantry ingredients, storing data locally with SQLite, and generating recipe suggestions from available ingredients.
+
+## 📱 Project Overview
+
+Smart Pantry Manager is an Android application developed for the **Mobile App Development 700** assignment.
+
+The application was built to provide a practical pantry-management workflow while demonstrating Android application development, local database persistence, user input validation, navigation between activities, and recipe-matching logic.
 
 ## Background & Motivation
 
@@ -9,38 +14,73 @@ As part of my mobile application development studies, I built this project to st
 
 The application focuses on practical pantry management functionality, including adding, editing, and deleting ingredients, maintaining pantry data, and using stored ingredients to support recipe suggestions. The project also provided hands-on experience with Android UI design, application navigation, local data persistence, and implementing application logic in Java.
 
-## Purpose
+## ✨ Key Features
 
-Smart Pantry Manager allows users to manage ingredients stored in their
-pantry and receive recipe suggestions based on the ingredients and quantities
-they currently have available.
+- **Pantry management** — add, view, edit, and delete ingredients.
+- **Quantity and unit tracking** — store the amount and measurement unit for each ingredient.
+- **Expiry-date handling** — support optional expiry dates and validation.
+- **Local persistence** — store pantry information in a local SQLite database.
+- **Recipe database** — maintain seeded recipes and their required ingredients.
+- **Recipe matching** — compare pantry ingredients and quantities against recipe requirements.
+- **Suggested recipes** — display recipes that satisfy the application's matching rules.
+- **Recipe details** — view information for a selected recipe.
+- **Settings** — store the application's expiry-alert preference using SharedPreferences.
+- **Material UI** — Android layouts and Material Design components.
+- **Activity-based navigation** — navigate between the application's main screens using Android Activities and Intents.
 
-A recipe is suggested only when all of its required ingredients are available
-in the pantry in sufficient quantities.
+## 🛠️ Technology Stack
 
-## Technology
+| Technology | Use |
+|---|---|
+| **Java** | Application logic |
+| **Android Studio** | Android development environment |
+| **SQLite / SQLiteOpenHelper** | Local data persistence |
+| **RecyclerView** | Pantry and recipe lists |
+| **Material Design** | User interface components |
+| **XML** | Android layouts |
+| **SharedPreferences** | Settings persistence |
+| **Gradle** | Project build system |
 
-- Java
-- Android Studio
-- Android Activities and Intents
-- SQLite using SQLiteOpenHelper
-- RecyclerView
-- Custom RecyclerView adapters
-- Material Design components
-- XML layouts
+## 🧩 Application Structure
 
-## Main Screens
+The project is organised into separate areas for activities, adapters, database access, models and utilities.
 
-The application contains the following screens:
+```text
+SmartPantryManager/
+├── app/
+│   └── src/main/
+│       ├── java/com/lungelo/smartpantrymanager/
+│       │   ├── MainActivity.java
+│       │   ├── PantryActivity.java
+│       │   ├── AddEditIngredientActivity.java
+│       │   ├── SuggestedRecipesActivity.java
+│       │   ├── RecipeDetailActivity.java
+│       │   ├── SettingsActivity.java
+│       │   ├── Navigation.java
+│       │   ├── adapters/
+│       │   ├── database/
+│       │   ├── models/
+│       │   └── utils/
+│       └── res/
+├── docs/
+│   └── KNOWLEDGE_BASE.md
+├── build.gradle
+├── settings.gradle
+└── README.md
+```
 
-1. Home
-2. My Pantry
-3. Add/Edit Ingredient
-4. Suggested Recipes
-5. Recipe Details
-6. Settings
+## 🏠 Main Application Screens
 
-## Pantry Management
+The application includes the following main areas:
+
+1. **Home**
+2. **My Pantry**
+3. **Add / Edit Ingredient**
+4. **Suggested Recipes**
+5. **Recipe Details**
+6. **Settings**
+
+## 🥫 Pantry Management
 
 Users can:
 
@@ -54,34 +94,29 @@ Users can:
 - Validate that quantities are greater than zero
 - Validate expiry dates
 
-Pantry data is stored locally using SQLite and remains available after the
-application is closed and reopened.
+Pantry data is stored locally using SQLite and remains available after the application is closed and reopened.
 
-## Recipe Suggestions
+## 🍳 Recipe Suggestions
 
-The application contains 18 seeded recipes.
+The application contains **18 seeded recipes**.
 
-Recipe suggestions use strict ingredient and quantity matching.
-
-A recipe is displayed only when:
+Recipe suggestions use ingredient and quantity matching. A recipe is displayed only when:
 
 - Every required ingredient is available.
 - The available quantity is equal to or greater than the required quantity.
 - Compatible units can be converted where supported.
 
-The matching system also normalizes common singular and plural ingredient
-names.
+The matching system also normalizes common singular and plural ingredient names.
 
 For example, a recipe requiring:
 
-    chicken: 250 g
+```text
+chicken: 250 g
+```
 
-will only be suggested when at least 250 g of chicken is available.
+requires at least **250 g of chicken** to be available in the pantry.
 
-If a required ingredient is missing or there is not enough of it, the recipe
-is not displayed.
-
-## Recipe Database
+## 🗄️ Database
 
 The local SQLite database contains three main tables:
 
@@ -89,72 +124,55 @@ The local SQLite database contains three main tables:
 - `recipes`
 - `recipe_ingredients`
 
-The `recipes` and `recipe_ingredients` tables are populated with the seeded
-recipe data when the database is created.
+The recipe tables are populated with seeded recipe data when the database is created.
 
-## Database Persistence
+## 📚 Project Knowledge Base
 
-Pantry ingredients are stored in the local SQLite database.
+A detailed project knowledge base is included in:
 
-This means that ingredients remain stored when the user:
+**[`docs/KNOWLEDGE_BASE.md`](docs/KNOWLEDGE_BASE.md)**
 
-- Leaves the pantry screen
-- Navigates between screens
-- Closes the application
-- Reopens the application
+It documents the application's architecture, database design, major components, navigation, recipe-matching flow, validation, and development considerations.
 
-## Settings
+## ▶️ Running the Application
 
-The Settings screen provides an expiry-alert preference.
-
-The preference is stored using Android SharedPreferences so that the selected
-setting can be retained.
-
-## Navigation
-
-The application uses Android Activities and Intents for navigation between
-the main application screens.
-
-Toolbar navigation and the application's menu are used to move between
-screens.
-
-## Project Structure
-
-Important application components include:
-
-- `MainActivity` - application home screen
-- `PantryActivity` - pantry ingredient list
-- `AddEditIngredientActivity` - add and edit ingredients
-- `SuggestedRecipesActivity` - displays matching recipes
-- `RecipeDetailActivity` - displays recipe information
-- `SettingsActivity` - application settings
-- `DatabaseHelper` - SQLite database management
-- `RecipeMatcher` - strict recipe matching logic
-- `PantryAdapter` - RecyclerView adapter for pantry ingredients
-- `RecipeAdapter` - RecyclerView adapter for recipes
-
-## Running the Application
-
-1. Open the project in Android Studio.
+1. Open the project in **Android Studio**.
 2. Allow Gradle synchronization to complete.
-3. Make sure an Android emulator or physical Android device is available.
-4. Select the device from Android Studio.
+3. Start an Android emulator or connect a physical Android device.
+4. Select the device in Android Studio.
 5. Press **Run**.
-6. The application will build and launch on the selected device.
+6. Build and launch the application.
 
-## GitHub Development
+## 🧪 Development & Validation
 
-The project is maintained in a Git repository and developed through
-incremental commits.
+The project has been developed through incremental Git commits so that changes to functionality, validation, UI, database behaviour and bug fixes can be tracked separately.
 
-Each commit represents a genuine development change to the application,
-such as functionality, validation, UI improvements, database improvements,
-or bug fixes.
+The repository documentation is intended to reflect the actual implementation rather than an idealised or hypothetical application.
 
-## Academic Note
+## 📸 Screenshots
 
-This project was developed for the Mobile App Development 700 assignment.
-The implementation, Git history, demonstration, and written documentation
-should reflect the actual functionality and development process of the
-application.
+Screenshots of the running application can be added here as project evidence, particularly for:
 
+- Home screen
+- My Pantry
+- Add Ingredient
+- Edit Ingredient
+- Suggested Recipes
+- Recipe Details
+- Settings
+
+Only screenshots from the actual application should be included.
+
+## 🎓 Academic Context
+
+This project was developed for the **Mobile App Development 700** assignment.
+
+The repository contains the Android source code, project configuration, documentation and knowledge base used to explain the implementation.
+
+---
+
+**Project:** Smart Pantry Manager  
+**Platform:** Android  
+**Language:** Java  
+**Database:** SQLite  
+**Development Environment:** Android Studio
