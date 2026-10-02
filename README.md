@@ -3,6 +3,12 @@
 Java Android application developed for the Mobile App Development 700
 assignment.
 
+## Background & Motivation
+
+As part of my mobile application development studies, I built this project to strengthen my practical understanding of Android application development and database-driven mobile applications.
+
+The application focuses on practical pantry management functionality, including adding, editing, and deleting ingredients, maintaining pantry data, and using stored ingredients to support recipe suggestions. The project also provided hands-on experience with Android UI design, application navigation, local data persistence, and implementing application logic in Java.
+
 ## Purpose
 
 Smart Pantry Manager allows users to manage ingredients stored in their
