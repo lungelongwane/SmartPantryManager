@@ -22,8 +22,11 @@ public class RecipeMatcher {
     }
 
     /**
-     * Returns only recipes where the pantry contains
-     * every required ingredient in the required quantity.
+     * Returns only recipes where the pantry contains every required
+     * ingredient in a sufficient quantity.
+     *
+     * Quantities are compared using a common base unit for compatible
+     * units (grams for weight and millilitres for volume).
      */
     public List<Recipe> getStrictMatches(
             List<Recipe> recipes,
@@ -38,17 +41,13 @@ public class RecipeMatcher {
             List<RecipeIngredient> requiredIngredients =
                     db.getRecipeIngredients(recipe.getId());
 
-            Log.d(
-                    TAG,
-                    "Checking recipe: " + recipe.getName()
-            );
+            Log.d(TAG, "Checking recipe: " + recipe.getName());
 
             for (RecipeIngredient required : requiredIngredients) {
 
                 double available = 0;
 
-                String requiredName =
-                        normalize(required.getName());
+                String requiredName = normalize(required.getName());
 
                 Log.d(
                         TAG,
@@ -62,42 +61,41 @@ public class RecipeMatcher {
 
                 for (Ingredient pantryItem : pantry) {
 
-                    String pantryName =
-                            normalize(pantryItem.getName());
+                    String pantryName = normalize(pantryItem.getName());
 
-                    if (pantryName.equals(requiredName)) {
-
-                        double converted =
-                                convertToBase(
-                                        pantryItem.getQuantity(),
-                                        pantryItem.getUnit(),
-                                        required.getUnit()
-                                );
-
-                        if (converted >= 0) {
-                            available += converted;
-                        }
-
-                        Log.d(
-                                TAG,
-                                "Matched pantry item: "
-                                        + pantryItem.getName()
-                                        + " | "
-                                        + pantryItem.getQuantity()
-                                        + " "
-                                        + pantryItem.getUnit()
-                                        + " | converted = "
-                                        + converted
-                        );
+                    if (!pantryName.equals(requiredName)) {
+                        continue;
                     }
+
+                    double converted = convertToBase(
+                            pantryItem.getQuantity(),
+                            pantryItem.getUnit(),
+                            required.getUnit()
+                    );
+
+                    if (converted >= 0) {
+                        available += converted;
+                    }
+
+                    Log.d(
+                            TAG,
+                            "Matched pantry item: "
+                                    + pantryItem.getName()
+                                    + " | "
+                                    + pantryItem.getQuantity()
+                                    + " "
+                                    + pantryItem.getUnit()
+                                    + " | converted = "
+                                    + converted
+                    );
                 }
 
-                double needed =
-                        convertToBase(
-                                required.getQuantity(),
-                                required.getUnit(),
-                                required.getUnit()
-                        );
+                // Convert both values to the same base unit.
+                double needed = convertToBase(
+                        required.getQuantity(),
+                        required.getUnit(),
+                        required.getUnit()
+                );
 
                 Log.d(
                         TAG,
@@ -107,12 +105,11 @@ public class RecipeMatcher {
                                 + needed
                 );
 
-                if (available < needed) {
+                if (needed < 0 || available < needed) {
 
                     Log.d(
                             TAG,
-                            "FAILED: "
-                                    + required.getName()
+                            "FAILED: " + required.getName()
                     );
 
                     qualifies = false;
@@ -121,13 +118,7 @@ public class RecipeMatcher {
             }
 
             if (qualifies) {
-
-                Log.d(
-                        TAG,
-                        "MATCH FOUND: "
-                                + recipe.getName()
-                );
-
+                Log.d(TAG, "MATCH FOUND: " + recipe.getName());
                 matches.add(recipe);
             }
         }
@@ -136,8 +127,8 @@ public class RecipeMatcher {
     }
 
     /**
-     * Normalizes ingredient names so that simple
-     * singular/plural differences do not prevent matching.
+     * Normalizes ingredient names so simple singular/plural differences
+     * do not prevent matching.
      */
     public static String normalize(String value) {
 
@@ -145,25 +136,17 @@ public class RecipeMatcher {
             return "";
         }
 
-        String s =
-                value
-                        .toLowerCase(Locale.ROOT)
-                        .trim();
+        String s = value.toLowerCase(Locale.ROOT).trim();
 
         if (s.endsWith("ies") && s.length() > 3) {
-
             s = s.substring(0, s.length() - 3) + "y";
-
         } else if (s.endsWith("oes") && s.length() > 3) {
-
             s = s.substring(0, s.length() - 2);
-
         } else if (
                 s.endsWith("s")
                         && !s.endsWith("ss")
                         && s.length() > 2
         ) {
-
             s = s.substring(0, s.length() - 1);
         }
 
@@ -172,95 +155,126 @@ public class RecipeMatcher {
 
     /**
      * Converts compatible units to a common base unit.
-     * Returns -1 when the units cannot be compared.
+     *
+     * Weight is converted to grams, volume to millilitres, and
+     * like-for-like count units are kept as counts.
+     *
+     * Returns -1 when the units cannot safely be compared.
      */
     private double convertToBase(
             double amount,
             String from,
             String target) {
 
-        String f =
-                from == null
-                        ? ""
-                        : from.toLowerCase(Locale.ROOT).trim();
+        String f = canonicalUnit(from);
+        String t = canonicalUnit(target);
 
-        String t =
-                target == null
-                        ? ""
-                        : target.toLowerCase(Locale.ROOT).trim();
-
-        // Same unit
-        if (f.equals(t)) {
-            return amount;
+        if (f.isEmpty() || t.isEmpty()) {
+            return -1;
         }
 
-        // Weight conversion
+        // Weight: base unit = gram.
         if (isWeight(f) && isWeight(t)) {
             return convertWeight(amount, f);
         }
 
-        // Volume conversion
+        // Volume: base unit = millilitre.
         if (isVolume(f) && isVolume(t)) {
             return convertVolume(amount, f);
         }
 
-        // Piece-based units
-        if (isPieceUnit(f) && isPieceUnit(t)) {
+        // Count units are only interchangeable with the same kind
+        // of count. A clove is not a piece, and a slice is not a can.
+        if (f.equals(t) && isCountUnit(f)) {
             return amount;
         }
 
-        // Units cannot be safely compared
         return -1;
     }
 
-    private boolean isWeight(String unit) {
+    private String canonicalUnit(String unit) {
 
-        return unit.equals("g")
-                || unit.equals("gram")
-                || unit.equals("grams")
-                || unit.equals("kg")
-                || unit.equals("kilogram")
-                || unit.equals("kilograms");
+        if (unit == null) {
+            return "";
+        }
+
+        String value = unit.toLowerCase(Locale.ROOT).trim();
+
+        switch (value) {
+            case "gram":
+            case "grams":
+            case "g":
+                return "g";
+
+            case "kilogram":
+            case "kilograms":
+            case "kg":
+                return "kg";
+
+            case "millilitre":
+            case "millilitres":
+            case "milliliter":
+            case "milliliters":
+            case "ml":
+                return "ml";
+
+            case "litre":
+            case "litres":
+            case "liter":
+            case "liters":
+            case "l":
+                return "l";
+
+            case "cup":
+            case "cups":
+                return "cup";
+
+            case "piece":
+            case "pieces":
+            case "pc":
+            case "pcs":
+                return "piece";
+
+            case "slice":
+            case "slices":
+                return "slice";
+
+            case "clove":
+            case "cloves":
+                return "clove";
+
+            case "can":
+            case "cans":
+                return "can";
+
+            default:
+                return value;
+        }
+    }
+
+    private boolean isWeight(String unit) {
+        return unit.equals("g") || unit.equals("kg");
     }
 
     private boolean isVolume(String unit) {
-
         return unit.equals("ml")
-                || unit.equals("millilitre")
-                || unit.equals("millilitres")
                 || unit.equals("l")
-                || unit.equals("litre")
-                || unit.equals("litres")
-                || unit.equals("cup")
-                || unit.equals("cups");
+                || unit.equals("cup");
     }
 
-    private boolean isPieceUnit(String unit) {
-
+    private boolean isCountUnit(String unit) {
         return unit.equals("piece")
-                || unit.equals("pieces")
-                || unit.equals("pc")
-                || unit.equals("pcs")
                 || unit.equals("slice")
-                || unit.equals("slices")
                 || unit.equals("clove")
-                || unit.equals("cloves")
-                || unit.equals("can")
-                || unit.equals("cans");
+                || unit.equals("can");
     }
 
     /**
      * Converts weight to grams.
      */
-    private double convertWeight(
-            double amount,
-            String unit) {
+    private double convertWeight(double amount, String unit) {
 
-        if (
-                unit.equals("kg")
-                        || unit.equals("kilogram")
-                        || unit.equals("kilograms")
-        ) {
+        if (unit.equals("kg")) {
             return amount * 1000.0;
         }
 
@@ -272,22 +286,13 @@ public class RecipeMatcher {
      *
      * One cup is treated as 240 ml.
      */
-    private double convertVolume(
-            double amount,
-            String unit) {
+    private double convertVolume(double amount, String unit) {
 
-        if (
-                unit.equals("l")
-                        || unit.equals("litre")
-                        || unit.equals("litres")
-        ) {
+        if (unit.equals("l")) {
             return amount * 1000.0;
         }
 
-        if (
-                unit.equals("cup")
-                        || unit.equals("cups")
-        ) {
+        if (unit.equals("cup")) {
             return amount * 240.0;
         }
 
